@@ -1,0 +1,14 @@
+body { font: 11px Arial,Helvetica,"Nimbus Sans L",sans-serif;}
+.body { background-color: #507AAA; border: 1px solid #2C4056; -webkit-border-radius: 10px; -moz-border-radius: 10px; padding: 10px;}
+
+.block { background-color: #FFFFFF; -webkit-border-radius: 5px; -moz-border-radius:5px; padding: 5px; margin: 10px 0 0;}
+.block strong a { text-decoration: none; color: black; }
+.block strong a span { font-size: 16px; color: grey; position: relative; right:0px; top: 0px; }
+.block strong a:hover span { color: orange; }
+.block div { display: none; height: 250px; }
+.block.expanded div { display: block; }
+.block.expanded strong a span { color: orange; }
+.block.expanded strong a:hover span { color: grey; }
+
+.success-link a { font-size: 12px; color: grey;}
+
