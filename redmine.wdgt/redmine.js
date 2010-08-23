@@ -3,16 +3,21 @@ function _st(_ev) {_ev.preventDefault()}
 var cfg;
 (function() {
   var _cfg_keys = new Array('host', 'login', 'password', 'sessid'), _cfg = {};
-  //if (window.widget) {
     $.each(_cfg_keys, function(_i, _key) {
       _cfg[_key] = window.widget ? widget.preferenceForKey(_key) : '';
     });
-  //}
   cfg = function(_key) {
-    return (arguments.length === 2) ? (function() {
+    
+    if (arguments.length == 2) {
       _cfg[_key] = arguments[1];
+      if (window.widget) {
+        widget.setPreferenceForKey(_key, _cfg[_key]);
+      }
+      $('#test').innerHTML(widget.preferenceForKey(_key));
       return true;
-    })() : _cfg[_key];
+    } else {
+      return _cfg[_key]
+    }
   }
 })();
 
