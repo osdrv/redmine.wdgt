@@ -1,0 +1,17 @@
+diff --git a/app/controllers/account_controller.rb b/app/controllers/account_controller.rb
+index 5fa56b1..616e148 100644
+--- a/app/controllers/account_controller.rb
++++ b/app/controllers/account_controller.rb
+@@ -207,7 +207,11 @@ class AccountController < ApplicationController
+       cookies[:autologin] = { :value => token.value, :expires => 1.year.from_now }
+     end
+     call_hook(:controller_account_success_authentication_after, {:user => user })
+-    redirect_back_or_default :controller => 'my', :action => 'page'
++    if !request.xhr?
++      redirect_back_or_default :controller => 'my', :action => 'page'
++    else
++      render :nothig => true, :status => 200
++    end
+   end
+ 
+   # Onthefly creation failed, display the registration form to fill/fix attributes
