@@ -9,7 +9,7 @@
     <script src="redmine.js" type="text/javascript"></script>
   </head>
   <body>
-    <div class="body" id="body_div">
+    <div id="front" class="body front">
       <div id="test"></div>
       <h1>Redmine dashboard</h1>
       <div class="block" id="my_tasks" name="tasks">
@@ -21,44 +21,55 @@
           <ul class="tasklist" id='tasklist'></ul>
         </div>
       </div>
-      <div class="block expanded" id="new_task" name="create">
+      <div class="block" id="new_task" name="create">
         <strong>
           <a href="#"><span>★</span> Create a new task</a>
         </strong>
         <div>
           <br/>
-          <form>
-            <label for="project_selectbox">
-              Project
-            </label>
-            <select id="project_selectbox" name="project">
-              <option>Obnovlenie</option>
-              <option>Tourstanok</option>
-              <option>Backend</option>
-            </select>
-            <br />
-            <label for="subject_input">
-              Subject
-            </label>
-            <input type="text" id="subject_input" size="45" name="subject"/>
-            <br/>
-            <label for="details_textarea">
-              Details
-            </label>
-            <textarea id="details_textarea" cols="35" rows="10" name="details"></textarea>
-            <br/>
-            <label for="assignee_select" name="assignee">
-              Assignee
-            </label>
-            <select id="assignee_select">
-              <option>oleg.s</option>
-              <option>ignatov</option>
-              <option>sergey.k</option>
-            </select>
-          </form>
+          <div id="choose-project">
+            <strong>Choose a project:</strong>
+            <ul id="projects-list">
+              <li>loading...</li>
+            </ul>
+          </div>
+          <div id="form" style="display: none;">
+            <form>
+              <strong id="project-name"></strong>
+              <br />
+              <label for="subject_input">
+                Subject
+              </label>
+              <input type="hidden" id="form-authenticity-token" name="authenticity_token" value=""/>
+              <input type="hidden" name="issue[status_id]" value="1"/>
+              <input type="text" id="subject_input" size="45" name="issue[subject]" />
+              <br/>
+              <label for="details_textarea">
+                Details
+              </label>
+              <textarea id="details_textarea" cols="35" rows="10" name="issue[description]"></textarea>
+              <br/>
+              <label for="assignee_select" name="assignee">
+                Assignee
+              </label>
+              <select id="assignee_select" name="issue[assigned_to_id]"></select>
+              <br/>
+              <label for="priority">
+                Priority
+              </label>
+              <select id="priority" name="issue[priority_id]">
+                <option value="3">Low</option>
+                <option value="4" selected="true">Normal</option>
+                <option value="5">High</option>
+                <option value="6">Urgent</option>
+                <option value="7">Immediate</option>
+              </select>
+              <input type="button" id="save-new-issue" value="Save" />
+            </form>
+          </div>
         </div>
       </div>
-      <div class="block" id="settings" name="settings">
+      <div class="block" id="settings">
         <strong>
           <a href="#"><span>★</span> Settings</a>
         </strong>
@@ -80,22 +91,8 @@
           <input id="config_host_password" type="password" size="40" name="password"/>
           <br/>
           <input type="button" id="save_settings_button" name="save" value="Save">
-          <input type="button" id="try_to_auth" value="Auth">
-          <input type="button" id="load_feed" value="Load Feed">
-          <textarea id="test"></textarea>
         </div>
       </div>
-      <!--
-      <div class="block" id="new_task">
-        <strong class="success"><i></i>Task created succesfully</strong>
-        <br/>
-        <ul class="success-link">
-          <li>
-            <a href="http://red.mine/issues/1">http://red.mine/issues/1</a>
-          </li>
-        </ul>
-      </div>
-       //-->
     </div>
     <script type="text/javascript">
       init_widget();

@@ -1,9 +1,13 @@
 var
   AUTHENTICITY_TOKEN = 'authenticity_token',
   REDMINE_SESSION_ID = '_redmine_session',
-  LOGIN_URI = '/login';
-  MY_PAGE_URI = '/my/page';
-
+  LOGIN_URI = '/login',
+  MY_PAGE_URI = '/my/page',
+  PROJECTS_PAGE_URI = '/projects',
+  NEW_ISSUE_URI = '/issues/new',
+  ISSUES_URI = '/issues',
+  _user;
+  
 function _st(_ev) {_ev.preventDefault()}
 
 function debug(_msg) {
@@ -32,6 +36,24 @@ $.ajaxSetup({
   beforeSend: beforeAjaxSend
 })
 
+function _init_cfg() {
+  $('#settings').find('input[type="text"], input[type="password"]').each(function(_i, _el) {
+    _el = $(_el); _el.val(cfg(_el.attr('name')));
+  });
+}
+
+function _save_cfg() {
+  $('#settings').find('input[type="text"], input[type="password"]').each(function(_i, _el) {
+    _el = $(_el); cfg(_el.attr('name'), _el.val());
+  });
+  cfg('my_feed_url', '');
+  cfg('projects_feed_url', '');
+  var _body = $('#front').addClass('ok');
+  window.setTimeout(function() { _body.removeClass('ok') }, 700);
+}
+
+
+
 var User = function() { this._init() }
 
 User.prototype = {
@@ -42,7 +64,6 @@ User.prototype = {
   _init: function() {
     this._username = cfg('username');
     this._password = cfg('password');
-    //if (!this._sessid) this.auth();
   },
   
   isAuthenticated: function() {
@@ -87,21 +108,22 @@ User.prototype = {
     } catch (e) { debug(e) }
   },
   
+  _getFeed: function(_url, _c) {
+    $.getFeed({
+      url: _url,
+			success: function(feed) { _c(feed) },
+			error: function() { _c(null) }
+		});
+  },
+  
   loadFeed: function(_c) {
     var self = this,
     _loadMyFeed = function() {
-      var _getFeed = function() {
-        $.getFeed({
-          url: cfg('my_feed_url'),
-    			success: function(feed) { _c(feed) },
-    			error: function() { _c(null) }
-    		});
-      }
-
-      if (!cfg('my_feed_url')) {
-        self._getMyFeedUrl(_getFeed)
+      var _my_feed_url = cfg('my_feed_url');
+      if (!_my_feed_url) {
+        self._getMyFeedUrl(function() { self._getFeed(cfg('my_feed_url'), _c) })
       } else {
-        _getFeed();
+        self._getFeed(_my_feed_url, _c);
       }
     }
     if (!this.isAuthenticated()) this.auth(_loadMyFeed); else _loadMyFeed();
@@ -111,18 +133,50 @@ User.prototype = {
     $.ajax({
       url: 'http://' + cfg('host') + MY_PAGE_URI,
       success: function(_resp) {
-        cfg('my_feed_url', parser.getMyFeedUrl(_resp));
-        debug(cfg('my_feed_url'));
+        cfg('my_feed_url', parser.getFeedUrl(_resp));
         _c();
       },
       error: function() { debug('getMyFeedUrl error') }
+    })
+  },
+  
+  loadProjectsFeed: function(_c) {
+    var self = this,
+    _loadProjectsFeed = function() {
+      var _projects_feed_url = cfg('projects_feed_url');
+      if (!_projects_feed_url) {
+        self._getProjectsFeedUrl(function() { self._getFeed(cfg('projects_feed_url'), _c) })
+      } else {
+        self._getFeed(_projects_feed_url, _c);
+      }
+    }
+    if (!this.isAuthenticated()) this.auth(_loadProjectsFeed); else _loadProjectsFeed();
+  },
+  
+  _getProjectsFeedUrl: function(_c) {
+    $.ajax({
+      url: 'http://' + cfg('host') + PROJECTS_PAGE_URI,
+      success: function(_resp) {
+        cfg('projects_feed_url', parser.getProjectsFeedUrl(_resp));
+        _c();
+      },
+      error: function() { debug('getProjectsFeedUrl error') }
     })
   }
 }
 
 var parser = {
-  getMyFeedUrl: function(_resp) {
-    debug('getMyFeed');
+  
+  getProjectsFeedUrl: function(_resp) {
+    var _link = /<a.+class="atom".*?>/.exec(_resp);
+    if (_link[0] !== undefined) {
+      var _href = /href="([^"]+)"/.exec(_link[0]);
+      if (_href[1] !== undefined) return 'http://' + cfg('host') + _href[1];
+    }
+    return null;
+  },
+  
+  getFeedUrl: function(_resp) {
     var _link = /<link.*rel="alternate".*?\/>/.exec(_resp);
     if (_link && (_link[0] !== undefined)) {
       var _href = /href="(.+)?"/.exec(_link[0]);
@@ -146,21 +200,14 @@ var parser = {
     _find_sessid = /_redmine_session=([^;]+)/.exec(_header);
     if (_find_sessid && (_find_sessid[0] !== undefined) && (_find_sessid[1] !== undefined)) return _find_sessid[1];
     return null;
+  },
+  
+  getAssigneeOptions: function(_resp) {
+    var _resp = _resp.split(/<select.+assigned_to_id.+?>/)[1];
+    if (_resp === undefined) return '';
+    _resp = _resp.split(/<\/select>/);
+    return _resp[0];
   }
-}
-
-function _init_cfg() {
-  $('#settings').find('input[type="text"], input[type="password"]').each(function(_i, _el) {
-    _el = $(_el); _el.val(cfg(_el.attr('name')));
-  });
-}
-
-function _save_cfg() {
-  $('#settings').find('input[type="text"], input[type="password"]').each(function(_i, _el) {
-    _el = $(_el); cfg(_el.attr('name'), _el.val());
-  });
-  var _body = $('#body_div').addClass('ok');
-  window.setTimeout(function() { _body.removeClass('ok') }, 700);
 }
 
 var RedmineWidget = function() { this._init() };
@@ -171,7 +218,7 @@ RedmineWidget.prototype = {
   _tabs: null,
   
   _init: function() {
-    this._element = $('#body_div');
+    this._element = $('#front');
     this._tabs = this._element.children('div.block');
     _init_cfg();
     
@@ -180,12 +227,37 @@ RedmineWidget.prototype = {
     this._tabs.each(function(_i, _el) {
       $(_el).find('strong a').click(function(_ev) {
         _st(_ev);
-        $('#body_div').children('div.block').removeClass('expanded');
+        $('#front').children('div.block').removeClass('expanded');
         $(_el).addClass('expanded');
       });
     });
     
+    var self = this;
+    $("#projects-list li a").live('click', function(_ev) {
+      _st(_ev);
+      var _project_link = $(this).attr('link'),
+      _project_name = $(this).text();
+      self.initNewIssue(_project_link, _project_name);
+    })
+    
+    $('#save-new-issue').click(function(){ self.saveNewIssue.call(self) });
+    
     return this;
+  },
+  
+  initNewIssue: function(_link, _name) {
+    $('#projects-list').html('<li>loading...</li>')
+    $.ajax({
+      url: _link + NEW_ISSUE_URI,
+      success: function(_resp) {
+        $('#choose-project').hide();
+        $('#form').show();
+        $('#project-name').html(_name);
+        $('#form').attr('action', _link + ISSUES_URI);
+        $('#form-authenticity-token').val(parser.getAuthencityToken(_resp));
+        $('#assignee_select').html(parser.getAssigneeOptions(_resp));
+      }
+    });
   },
   
   selectTab: function(_name) {
@@ -204,36 +276,53 @@ RedmineWidget.prototype = {
     _holder.html(_lis);
     
     return this;
+  },
+  
+  updateProjectsList: function(_feed) {
+    var _items = $(_feed.items),
+    _holder = $('#projects-list'),
+    _lis = '';
+    $.each(_items, function(_i, _item) {
+      _item = $(_item);
+      _lis += '<li>' + '<a href="javascript:void(0);" link="' + _item.attr('link') + '">' + _item.attr('title') + '</a>' + '</li>';
+    });
+    _holder.html(_lis);
+    
+    return this;
+  },
+  
+  saveNewIssue: function() {
+    var _data = {}, self = this;
+    $('#form').find('input, checkbox, textarea, select').each(function(_i, _el) {
+      _el = $(_el);
+      _data[_el.attr('name')] = _el.val();
+    });
+    $.ajax({
+      url: $('#form').attr('action'),
+      type: 'POST',
+      data: _data,
+      success: function(_resp, _st, _xhr) {
+        $('#form-authenticity-token').val('');
+        $('#subject_input').val('');
+        $('#details_textarea').val('');
+        $('#choose-project').show();
+        $('#form').hide();
+        $('#front').addClass('ok');
+        self.selectTab('tasks');
+        _user.loadFeed(self.updateTasks);
+        window.setTimeout(function() { $('#front').removeClass('ok'); _user.loadProjectsFeed(self.updateProjectsList) }, 700);
+      }
+    })
   }
 }
 
 function init_widget() {
   $(function() {
-    var _user = new User(),
+    _user = new User(),
     w = new RedmineWidget();
     w.selectTab('tasks');
     widget.onshow = function() { _user.loadFeed(w.updateTasks) };
-    //_user.loadFeed(w.updateTasks)
-    
-    $('#try_to_auth').click(function() {
-      try {
-        if (!_user) _user = new User();
-        _user.auth();
-      } catch (e) {
-        debug (e);
-      }
-    });
-    $('#load_feed').click(function() {
-      try {
-        if (!_user) _user = new User();
-        debug('user created');
-        _user.loadFeed(function(_feed) {
-          if (_feed) {
-            var _items = $(_feed.items);
-            debug(_items.length);
-          }
-        });
-      } catch (e) { debug (e) }
-    });
+    _user.loadFeed(w.updateTasks);
+    _user.loadProjectsFeed(w.updateProjectsList);
   });
 }

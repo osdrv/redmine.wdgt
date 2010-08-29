@@ -1,9 +1,10 @@
 body { font: 11px Arial,Helvetica,"Nimbus Sans L",sans-serif;}
 
-.body { background-color: #507AAA; border: 1px solid #2C4056; -webkit-border-radius: 10px; -moz-border-radius: 10px; padding: 10px;}
-.body.warn { background-color: red; }
-.body.ok { background-color: green; }
-
+.body { border: 1px solid #2C4056; -webkit-border-radius: 10px; -moz-border-radius: 10px; padding: 10px;}
+.body.front { background-color: #507AAA; display: block; }
+.body.back { background-color: #0F1923; display: none; }
+.body.front.warn { background-color: red; }
+.body.front.ok { background-color: green; }
 
 .block { background-color: #FFFFFF; -webkit-border-radius: 5px; -moz-border-radius:5px; padding: 5px; margin: 10px 0 0;}
 .block strong a { text-decoration: none; color: black; }
@@ -14,5 +15,8 @@ body { font: 11px Arial,Helvetica,"Nimbus Sans L",sans-serif;}
 .block.expanded strong a span { color: orange; }
 .block.expanded strong a:hover span { color: grey; }
 
-.tasklist a { font-size: 12px; color: grey;}
+.tasklist a { font-size: 12px; color: blue;}
+
+#infoButton { position:absolute; left: 10px; top: 10px; }
+#doneButton { position:absolute; left: 50px; top: 10px; }
 
