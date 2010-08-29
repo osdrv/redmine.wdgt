@@ -241,8 +241,17 @@ RedmineWidget.prototype = {
     })
     
     $('#save-new-issue').click(function(){ self.saveNewIssue.call(self) });
-    
+    $('#cancel-new-issue').click(function() { self._clearNewIssueForm() });
     return this;
+  },
+  
+  _clearNewIssueForm: function() {
+    $('#form-authenticity-token').val('');
+    $('#subject_input').val('');
+    $('#details_textarea').val('');
+    $('#choose-project').show();
+    $('#form').hide();
+    _user.loadProjectsFeed(this.updateProjectsList);
   },
   
   initNewIssue: function(_link, _name) {
@@ -302,15 +311,11 @@ RedmineWidget.prototype = {
       type: 'POST',
       data: _data,
       success: function(_resp, _st, _xhr) {
-        $('#form-authenticity-token').val('');
-        $('#subject_input').val('');
-        $('#details_textarea').val('');
-        $('#choose-project').show();
-        $('#form').hide();
+        self._clearNewIssueForm();
         $('#front').addClass('ok');
         self.selectTab('tasks');
         _user.loadFeed(self.updateTasks);
-        window.setTimeout(function() { $('#front').removeClass('ok'); _user.loadProjectsFeed(self.updateProjectsList) }, 700);
+        window.setTimeout(function() { $('#front').removeClass('ok') }, 700);
       }
     })
   }
