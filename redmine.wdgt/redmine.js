@@ -280,7 +280,9 @@ RedmineWidget.prototype = {
     _lis = '';
     $.each(_items, function(_i, _item) {
       _item = $(_item);
-      _lis += '<li>' + '<a onclick="widget.openURL(this.href);return false;" href="' + _item.attr('link') + '">' + _item.attr('title') + '</a></li>';
+      _title = _item.attr('title').substr(0, 42);
+      _title += (_item.attr('title').length > 42) ? '...' : '';
+      _lis += '<li>' + '<a onclick="widget.openURL(this.href);return false;" href="' + _item.attr('link') + '">' + _title + '</a></li>';
     });
     _holder.html(_lis);
     
@@ -292,8 +294,10 @@ RedmineWidget.prototype = {
     _holder = $('#projects-list'),
     _lis = '';
     $.each(_items, function(_i, _item) {
-      _item = $(_item);
-      _lis += '<li>' + '<a href="javascript:void(0);" link="' + _item.attr('link') + '">' + _item.attr('title') + '</a>' + '</li>';
+      var _item = $(_item),
+      _title = _item.attr('title').substr(0, 42);
+      _title += (_item.attr('title').length > 42) ? '...' : '';
+      _lis += '<li>' + '<a href="javascript:void(0);" link="' + _item.attr('link') + '">' + _title + '</a>' + '</li>';
     });
     _holder.html(_lis);
     
