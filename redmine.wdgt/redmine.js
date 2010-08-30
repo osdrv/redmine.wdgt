@@ -284,8 +284,11 @@ RedmineWidget.prototype = {
     _lis = '';
     $.each(_items, function(_i, _item) {
       _item = $(_item);
-      _title = _item.attr('title').substr(0, 42);
-      _title += (_item.attr('title').length > 42) ? '...' : '';
+      _title = _item.attr('title');
+      var _pos = _title.search(/#/);
+      if (_pos != -1) _title = _title.substring(_pos);
+      if (_title.length > 42) _title = _title.substr(0, 42) + '...';
+      //_title += (_item.attr('title').length > 42) ?  : '';
       _lis += '<li>' + '<a onclick="widget.openURL(this.href);return false;" href="' + _item.attr('link') + '">' + _title + '</a></li>';
     });
     _holder.html(_lis);
