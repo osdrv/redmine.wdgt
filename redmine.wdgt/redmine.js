@@ -90,13 +90,15 @@ User.prototype = {
           var _resp_sessid = parser.getSessid(_x);
           if (_resp_sessid) {
             if (_resp_sessid != cfg('sessid')) cfg('sessid', _resp_sessid);
-            var _token = parser.getAuthencityToken(_resp);
-            $.ajax({
+            var _token = parser.getAuthencityToken(_resp),
+			_data = { username: self._username, password: self._password };
+			if (_token) _data['authenticity_token'] = _token;
+			$.ajax({
               url: _url,
               type: 'POST',
-              data: { username: self._username, password: self._password, authenticity_token: _token },
+              data: _data,
               success: function(_resp, _st, _x2) {
-                var _sessid = parser.getSessid(_x2);
+				var _sessid = parser.getSessid(_x2);
                 cfg('sessid', _sessid);
                 self.sessid = _sessid;
                 if (typeof(_c) == 'function') _c();
@@ -263,8 +265,9 @@ RedmineWidget.prototype = {
         $('#choose-project').hide();
         $('#form').show();
         $('#project-name').html(_name);
-        $('#form').attr('action', _link + ISSUES_URI);
-        $('#form-authenticity-token').val(parser.getAuthencityToken(_resp));
+        $('#form').attr('action', _link + NEW_ISSUE_URI);
+        var _token = parser.getAuthencityToken(_resp);
+        if (_token) $('#form-authenticity-token').val(_token);
         $('#assignee_select').html(parser.getAssigneeOptions(_resp));
       }
     });
@@ -308,15 +311,16 @@ RedmineWidget.prototype = {
   saveNewIssue: function() {
     var _data = {}, self = this;
     $('#form').find('input, checkbox, textarea, select').each(function(_i, _el) {
-      _el = $(_el);
-      _data[_el.attr('name')] = _el.val();
+      var _el = $(_el), _v = _el.val();
+      if (_v) _data[_el.attr('name')] = _v;
     });
+    debug($('#form').attr('action'));
     $.ajax({
       url: $('#form').attr('action'),
       type: 'POST',
       data: _data,
       success: function(_resp, _st, _xhr) {
-        self._clearNewIssueForm();
+	      self._clearNewIssueForm();
         $('#front').addClass('ok');
         self.selectTab('tasks');
         _user.loadFeed(self.updateTasks);
