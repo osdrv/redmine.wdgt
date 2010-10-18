@@ -6,7 +6,7 @@ var
   PROJECTS_PAGE_URI = '/projects',
   NEW_ISSUE_URI = '/issues/new',
   ISSUES_URI = '/issues',
-  _user;
+  _user, w;
   
 function _st(_ev) {_ev.preventDefault()}
 
@@ -49,8 +49,15 @@ function _save_cfg() {
   });
   cfg('my_feed_url', '');
   cfg('projects_feed_url', '');
-  var _body = $('#front').addClass('ok');
-  window.setTimeout(function() { _body.removeClass('ok') }, 700);
+  _user.forgetAuth();
+  $('#projects-list').html('<li>loading...</li>');
+  $('#tasklist').html('');
+  _user.auth(function() {
+    _user.loadProjectsFeed(w.updateProjectsList);
+    _user.loadFeed(w.updateTasks);
+    var _body = $('#front').addClass('ok');
+    window.setTimeout(function() { _body.removeClass('ok') }, 700);
+  })
 }
 
 
@@ -79,8 +86,6 @@ User.prototype = {
     _url = 'http://' + _host + _uri;
     cfg('sessid', '');
     if (!this._username || !this._password || !_host) {
-      //system_notice('error', 'Configuration invalid');
-      //widget.selectTab('settings');
       debug('auth error');
     }
     try {
@@ -165,6 +170,11 @@ User.prototype = {
       },
       error: function() { debug('getProjectsFeedUrl error') }
     })
+  },
+  
+  forgetAuth: function() {
+    this._sessid = null;
+    cfg('sessid', '');
   }
 }
 
@@ -265,7 +275,7 @@ RedmineWidget.prototype = {
         $('#choose-project').hide();
         $('#form').show();
         $('#project-name').html(_name);
-        $('#form').attr('action', _link + NEW_ISSUE_URI);
+        $('#form').attr('action', _link + ISSUES_URI);
         var _token = parser.getAuthencityToken(_resp);
         if (_token) $('#form-authenticity-token').val(_token);
         $('#assignee_select').html(parser.getAssigneeOptions(_resp));
@@ -288,7 +298,6 @@ RedmineWidget.prototype = {
       var _pos = _title.search(/#/);
       if (_pos != -1) _title = _title.substring(_pos);
       if (_title.length > 42) _title = _title.substr(0, 42) + '...';
-      //_title += (_item.attr('title').length > 42) ?  : '';
       _lis += '<li>' + '<a onclick="widget.openURL(this.href);return false;" href="' + _item.attr('link') + '">' + _title + '</a></li>';
     });
     _holder.html(_lis);
@@ -317,12 +326,12 @@ RedmineWidget.prototype = {
       var _el = $(_el), _v = _el.val();
       if (_v) _data[_el.attr('name')] = _v;
     });
-    debug($('#form').attr('action'));
     $.ajax({
       url: $('#form').attr('action'),
       type: 'POST',
       data: _data,
       success: function(_resp, _st, _xhr) {
+        debug(_resp);
 	      self._clearNewIssueForm();
         $('#front').addClass('ok');
         self.selectTab('tasks');
@@ -339,7 +348,10 @@ function init_widget() {
     w = new RedmineWidget();
     w.selectTab('tasks');
     widget.onshow = function() { _user.loadFeed(w.updateTasks) };
+    $('#my_tasks').click(function() { _user.loadFeed(w.updateTasks) });
     _user.loadFeed(w.updateTasks);
     _user.loadProjectsFeed(w.updateProjectsList);
+    $('#test').dblclick(function() { $(this).html('') });
+    $('#config_host_input, #config_host_login, #config_host_password, #subject_input, #details_textarea').smart_input({ emptyCss: { color: "#A0A0A0" }, element_class: 'active'})
   });
 }
