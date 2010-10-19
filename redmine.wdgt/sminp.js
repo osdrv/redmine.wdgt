@@ -57,6 +57,16 @@
 			
 			if (this.element.filter('textarea').length) {
 				this.options._fake = $('<textarea />').text(this.element.val());
+				
+				if (this.element.attr('rows')) {
+
+  				this.options._fake.attr('rows', this.element.attr('rows'));
+  			}
+  			
+  			if (this.element.attr('cols')) {
+
+  				this.options._fake.attr('cols', this.element.attr('cols'));
+  			}
 			} else {
 				this.options._fake = $('<input type="text" />').attr('value', this.element.val());
 			}
