@@ -330,6 +330,12 @@ RedmineWidget.prototype = {
       url: $('#form').attr('action'),
       type: 'POST',
       data: _data,
+      beforeSend: function(_x) {
+        _sessid = cfg('sessid');
+        if (_sessid) _x.setRequestHeader('Cookie', '_redmine_session=' + _sessid);
+        _x.setRequestHeader('Content-Type', 'multipart/form-data');
+        _x.setRequestHeader('X-Requested-With', 'widget');
+      },
       success: function(_resp, _st, _xhr) {
         debug(_resp);
 	      self._clearNewIssueForm();
