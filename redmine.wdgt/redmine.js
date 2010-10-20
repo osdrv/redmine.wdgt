@@ -373,13 +373,15 @@ RedmineWidget.prototype = {
       if (_last_push != _last_version) {
         info('update is available');
         $('#install-updates').show();
+      } else {
+        info('no updates are available')
       }
     })
   },
   update: function() {
     info('updating...');
     var self = this;
-    widget.system('curl "' + DOWNLOAD_NEW_VERSION_URL + '" > /tmp/redmine.widget.tar && cd /tmp/ && tar -xf redmine.widget.tar && rm redmine.widget.tar && mv redmine.wdgt ~/Library/Widgets/', 
+    widget.system('curl "' + DOWNLOAD_NEW_VERSION_URL + '" > /tmp/redmine.widget.tar && cd /tmp/ && tar -xf redmine.widget.tar && rm redmine.widget.tar && cp redmine.wdgt ~/Library/Widgets/', 
       function() {
         info('Update complete. Reload this widget with ⌘R for changes to take a place.');
         self._checkForUpdate(function(_res) { cfg('last_release_timestamp', _res.repository.pushed_at) })
