@@ -21,7 +21,7 @@ function debug(_msg) {
 
 function info(_m) {
   $('#info').text(_m);
-  window.setTimeout(function() { $('#info').fadeout() }, 1500);
+  window.setTimeout(function() { $('#info').fadeOut() }, 1500);
 }
 
 function cfg(_key) {
