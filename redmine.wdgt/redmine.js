@@ -6,7 +6,7 @@ var
   PROJECTS_PAGE_URI = '/projects',
   NEW_ISSUE_URI = '/issues/new',
   ISSUES_URI = '/issues',
-  UPD_CHECK_INTERVAL = 24 * 60 * 60,
+  UPD_CHECK_INTERVAL = 24 * 60 * 60 * 1000,
   CHECK_URL_GITHUB = 'http://github.com/api/v2/json/repos/show/4pcbr/redmine.wdgt',
   DOWNLOAD_NEW_VERSION_URL = 'http://4pcbr.com/redmine/redmine.widget.tar',
   _user, w;
