@@ -370,8 +370,10 @@ RedmineWidget.prototype = {
       cfg('upd_last_check', _t);
       var _last_push = _res.repository.pushed_at,
       _last_version = cfg('last_release_timestamp');
-      if (_last_push != _last_version) info('update is available');
-      $('#install-updates').show();
+      if (_last_push != _last_version) {
+        info('update is available');
+        $('#install-updates').show();
+      }
     })
   },
   update: function() {
