@@ -24,10 +24,10 @@ body { font: 14px Arial,Helvetica,"Nimbus Sans L",sans-serif; }
 #infoButton { position:absolute; left: 10px; top: 10px; }
 #doneButton { position:absolute; left: 50px; top: 10px; }
 
-.projects-list { font-size: 11px; margin: 0; padding: 0; }
+.projects-list { font-size: 12px; margin: 0; padding: 0; }
 .projects-list li { list-style-type: none; margin: 0 0 0 5px; padding: 0; }
 .projects-list a { color: #313131; text-decoration: none; }
-.projects-list a:hover { color: #F27478; font-size: 14px; }
+.projects-list a:hover { color: #F27478; }
 
 .text { border: 2px solid #507AAA; background-color: #FFF; -webkit-border-radius: 7px; -moz-border-radius: 7px; padding: 5px; margin: 0 0 10px 0; font-size: 14px; outline-style: none;}
 

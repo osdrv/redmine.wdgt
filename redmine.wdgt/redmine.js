@@ -14,13 +14,13 @@ var
 function _st(_ev) {_ev.preventDefault()}
 
 function debug(_msg) {
-  return;
   var _da = $('#test');
   _da.text(_da.text() + "\n" + _msg);
 }
 
 function info(_m) {
   $('#info').text(_m);
+  window.setTimeout(function() { $('#info').fadeout() }, 1500);
 }
 
 function cfg(_key) {
@@ -379,7 +379,7 @@ RedmineWidget.prototype = {
     widget.system('curl "' + DOWNLOAD_NEW_VERSION_URL + '" > /tmp/redmine.widget.tar && cd /tmp/ && tar -xf redmine.widget.tar && rm redmine.widget.tar && mv redmine.wdgt ~/Library/Widgets/', 
       function() {
         info('Update complete. Reload this widget with ⌘R for changes to take a place.');
-        self.checkForUpdate(function(_res) { cfg('last_release_timestamp', _res.repository.pushed_at) })
+        self._checkForUpdate(function(_res) { cfg('last_release_timestamp', _res.repository.pushed_at) })
       }
     );
   }
@@ -398,5 +398,8 @@ function init_widget() {
     $('#config_host_input, #config_host_login, #config_host_password, #subject_input, #details_textarea').smart_input({ emptyCss: { color: "#A0A0A0" }, element_class: 'active'});
     $('#check-for-updates').click(function(){ w.checkForUpdate(true) });
     $('#install-updates').click(function() { w.update() });
+    var _d;
+    if (_d = cfg('last_release_timestamp')) $('#last-update-time-label').html(_d);
+    debug(cfg('last_release_timestamp'));
   });
 }
