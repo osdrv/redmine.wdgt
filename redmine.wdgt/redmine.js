@@ -381,6 +381,7 @@ RedmineWidget.prototype = {
       function() {
         info('Update complete. Reload this widget with ⌘R for changes to take a place.');
         self._checkForUpdate(function(_res) { cfg('last_release_timestamp', _res.repository.pushed_at) })
+        $('#install-updates').hide();
       }
     );
   }
