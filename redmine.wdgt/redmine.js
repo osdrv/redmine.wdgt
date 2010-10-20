@@ -6,12 +6,14 @@ var
   PROJECTS_PAGE_URI = '/projects',
   NEW_ISSUE_URI = '/issues/new',
   ISSUES_URI = '/issues',
+  UPD_CHECK_INTERVAL = 24 * 60 * 60,
+  CHECK_URL_GITHUB = 'http://github.com/api/v2/json/repos/show/4pcbr/redmine.wdgt',
+  DOWNLOAD_NEW_VERSION_URL = 'http://4pcbr.com/redmine/redmine.widget.tar',
   _user, w;
   
 function _st(_ev) {_ev.preventDefault()}
 
 function debug(_msg) {
-  return;
   var _da = $('#test');
   _da.text(_da.text() + "\n" + _msg);
 }
@@ -345,6 +347,28 @@ RedmineWidget.prototype = {
         window.setTimeout(function() { $('#front').removeClass('ok') }, 700);
       }
     })
+  },
+  checkForUpdate: function(_force) {
+    var _d = new Date(),
+    _t = _d.getTime(),
+    _last_check = cfg('upd_last_check');
+    if (((_last_check + UPD_CHECK_INTERVAL) > _t) && !_force) return;
+    $.ajax({
+      url: CHECK_URL_GITHUB,
+      dataType: 'json',
+      success: function(_res) {
+        if ($.isEmptyObject(_res) || !_res.repository) return;
+        cfg('upd_last_check', _t);
+        var _last_push = _res.repository.pushed_at,
+        _last_version = cfg('last_release_timestamp');
+        if (_last_push != _last_version) debug('update is available');
+        $('#install-updates').show();
+      }
+    })
+  },
+  update: function() {
+    debug('updating...');
+    widget.system('curl "' + DOWNLOAD_NEW_VERSION_URL + '" > /tmp/redmine.widget.tar && cd /tmp/ && tar -xf redmine.widget.tar && rm redmine.widget.tar');
   }
 }
 
@@ -353,11 +377,13 @@ function init_widget() {
     _user = new User(),
     w = new RedmineWidget();
     w.selectTab('tasks');
-    widget.onshow = function() { _user.loadFeed(w.updateTasks) };
+    widget.onshow = function() { _user.loadFeed(w.updateTasks); w.checkForUpdate() };
     $('#my_tasks').click(function() { _user.loadFeed(w.updateTasks) });
     _user.loadFeed(w.updateTasks);
     _user.loadProjectsFeed(w.updateProjectsList);
     $('#test').dblclick(function() { $(this).html('') });
-    $('#config_host_input, #config_host_login, #config_host_password, #subject_input, #details_textarea').smart_input({ emptyCss: { color: "#A0A0A0" }, element_class: 'active'})
+    $('#config_host_input, #config_host_login, #config_host_password, #subject_input, #details_textarea').smart_input({ emptyCss: { color: "#A0A0A0" }, element_class: 'active'});
+    $('#check-for-updates').click(function(){ w.checkForUpdate(true) });
+    $('#install-updates').click(function() { w.update() });
   });
 }

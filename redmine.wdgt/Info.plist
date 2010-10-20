@@ -16,5 +16,7 @@
     <string>redmine.html</string>
     <key>AllowNetworkAccess</key>
   	<true/>
+  	<key>AllowSystem</key>
+  	<true/>
 </dict>
 </plist>
