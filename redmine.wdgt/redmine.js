@@ -20,7 +20,7 @@ function debug(_msg) {
 }
 
 function info(_m) {
-  $('#info').text(_m);
+  $('#info').text(_m).fadeIn();
   window.setTimeout(function() { $('#info').fadeOut() }, 1500);
 }
 
@@ -381,7 +381,7 @@ RedmineWidget.prototype = {
   update: function() {
     info('updating...');
     var self = this;
-    widget.system('curl "' + DOWNLOAD_NEW_VERSION_URL + '" > /tmp/redmine.widget.tar && cd /tmp/ && tar -xf redmine.widget.tar && rm redmine.widget.tar && cp redmine.wdgt ~/Library/Widgets/', 
+    widget.system('curl "' + DOWNLOAD_NEW_VERSION_URL + '" > /tmp/redmine.wdgt.tar && cd /tmp/ && tar -xf redmine.wdgt.tar && rm redmine.wdgt.tar && mv redmine.wdgt ~/Library/Widgets/', 
       function() {
         info('Update complete. Reload this widget with ⌘R for changes to take a place.');
         self._checkForUpdate(function(_res) { cfg('last_release_timestamp', _res.repository.pushed_at) })
