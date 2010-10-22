@@ -373,9 +373,7 @@ RedmineWidget.prototype = {
       if (_last_push != _last_version) {
         info('update is available');
         $('#install-updates').show();
-      } else {
-        info('no updates are available')
-      }
+      } else if (_force) info('no updates are available');
     })
   },
   update: function() {
@@ -406,6 +404,5 @@ function init_widget() {
     $('#install-updates').click(function() { w.update() });
     var _d;
     if (_d = cfg('last_release_timestamp')) $('#last-update-time-label').html(_d);
-    debug(cfg('last_release_timestamp'));
   });
 }
