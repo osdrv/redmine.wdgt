@@ -12,6 +12,7 @@ body { font: 14px Arial,Helvetica,"Nimbus Sans L",sans-serif; }
 .block strong a span { font-size: 16px; color: grey; position: relative; right:0px; top: 0px; }
 .block strong a:hover span { color: orange; }
 .block div { display: none; height: 250px; }
+.scrolly { overflow-x: hidden; overflow-y: auto; }
 .block.expanded div { display: block; }
 .block.expanded strong a span { color: orange; }
 .block.expanded strong a:hover span { color: grey; }
