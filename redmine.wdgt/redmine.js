@@ -14,7 +14,7 @@ var
 function _st(_ev) {_ev.preventDefault()}
 
 function debug(_msg) {
-  return;
+  //return;
   var _da = $('#test');
   _da.text(_da.text() + "\n" + _msg);
 }
@@ -242,14 +242,15 @@ RedmineWidget.prototype = {
     this._element = $('#front');
     this._tabs = this._element.children('div.block');
     _init_cfg();
-    
     $('#save_settings_button').click(_save_cfg);
     
+    var self = this;
     this._tabs.each(function(_i, _el) {
       $(_el).find('strong a').click(function(_ev) {
         _st(_ev);
         $('#front').children('div.block').removeClass('expanded');
         $(_el).addClass('expanded');
+        self._clearNewIssueForm();
       });
     });
     
