@@ -14,7 +14,7 @@ var
 function _st(_ev) {_ev.preventDefault()}
 
 function debug(_msg) {
-  //return;
+  return;
   var _da = $('#test');
   _da.text(_da.text() + "\n" + _msg);
 }
@@ -61,7 +61,7 @@ function _save_cfg() {
   $('#projects-list').html('<li>loading...</li>');
   $('#tasklist').html('');
   _user.auth(function() {
-    _user.loadProjectsFeed(w.updateProjectsList);
+    _user.loadProjectsFeed(function(_feed) { w.updateProjectsList(_feed) });
     _user.loadFeed(w.updateTasks);
     var _body = $('#front').addClass('ok');
     window.setTimeout(function() { _body.removeClass('ok') }, 700);
@@ -237,6 +237,7 @@ RedmineWidget.prototype = {
   
   _element: null,
   _tabs: null,
+  _previous_projects: [],
   
   _init: function() {
     this._element = $('#front');
@@ -258,13 +259,26 @@ RedmineWidget.prototype = {
     $("#projects-list li a").live('click', function(_ev) {
       _st(_ev);
       var _project_link = $(this).attr('link'),
-      _project_name = $(this).text();
+      _project_name = $(this).text(),
+      _project_id = $(this).closest('li').attr('id');
+      self._addPreviousProject(_project_id);
       self.initNewIssue(_project_link, _project_name);
     })
     
+    if (_pp = cfg('prev_selected_projects')) this._previous_projects = $.parseJSON(_pp);
+    
     $('#save-new-issue').click(function(){ self.saveNewIssue.call(self) });
     $('#cancel-new-issue').click(function() { self._clearNewIssueForm() });
+    
     return this;
+  },
+  
+  _addPreviousProject: function(_id) {
+    var _index = $.inArray(_id, this._previous_projects);
+    if (_index !== -1) this._previous_projects.splice(_index, 1);
+    this._previous_projects.unshift(_id);
+    this._previous_projects = this._previous_projects.slice(0, 3);
+    cfg('prev_selected_projects', $.toJSON(this._previous_projects));
   },
   
   _clearNewIssueForm: function() {
@@ -273,7 +287,8 @@ RedmineWidget.prototype = {
     $('#details_textarea').val('');
     $('#choose-project').show();
     $('#form').hide();
-    _user.loadProjectsFeed(this.updateProjectsList);
+    var self = this;
+    _user.loadProjectsFeed(function(_feed) { self.updateProjectsList(_feed) });
   },
   
   initNewIssue: function(_link, _name) {
@@ -317,16 +332,43 @@ RedmineWidget.prototype = {
   updateProjectsList: function(_feed) {
     var _items = $(_feed.items),
     _holder = $('#projects-list'),
-    _lis = '';
+    _lis = '',
+    self = this,
+    _entityTemplate = function(_id, _link, _title) {
+      return '<li id="' + _id + '">' + '<a href="javascript:void(0);" link="' + _link + '">' + _title + '</a>' + '</li>'
+    },
+    _prevHolder = [],
+    _rest = [];
     $.each(_items, function(_i, _item) {
       var _item = $(_item),
-      _title = _item.attr('title').substr(0, 42);
-      _title += (_item.attr('title').length > 42) ? '...' : '';
-      _lis += '<li>' + '<a href="javascript:void(0);" link="' + _item.attr('link') + '">' + _title + '</a>' + '</li>';
+      _title = _item.attr('title').substr(0, 42),
+      _index;
+      
+      _title += (_item.attr('title').length > 42) ? '...' : '',
+      
+      if (self._isPreviouslySelected(_item)) {
+        _index = self._getPrevIndex(_item);
+        _index = (_index !== -1)? _index : 0;
+        _prevHolder[_index] = _entityTemplate(_item.attr('id'), _item.attr('link'), '<b>' + _title + '</b>');
+      } else {
+        _rest.push(_entityTemplate(_item.attr('id'), _item.attr('link'), _title));
+      }
+      
+      _title = '<b>' + _title + '</b>';
+      _lis += '<li id="' + _item.attr('id') + '">' + '<a href="javascript:void(0);" link="' + _item.attr('link') + '">' + _title + '</a>' + '</li>';
     });
+    _lis = _prevHolder.join('') + _rest.join('');
     _holder.html(_lis);
     
     return this;
+  },
+  
+  _getPrevIndex: function(_i) {
+    return $.inArray(_i.attr('id'), this._previous_projects);
+  },
+  
+  _isPreviouslySelected: function(_i) {
+    return ($.inArray(_i.attr('id'), this._previous_projects) !== -1)? true : false;
   },
   
   saveNewIssue: function() {
@@ -398,12 +440,13 @@ function init_widget() {
     widget.onshow = function() { _user.loadFeed(w.updateTasks); w.checkForUpdate() };
     $('#my_tasks').click(function() { _user.loadFeed(w.updateTasks) });
     _user.loadFeed(w.updateTasks);
-    _user.loadProjectsFeed(w.updateProjectsList);
+    _user.loadProjectsFeed(function(_feed) { w.updateProjectsList.call(w, _feed) });
     $('#test, #info').dblclick(function() { $(this).html('') });
     $('#config_host_input, #config_host_login, #config_host_password, #subject_input, #details_textarea').smart_input({ emptyCss: { color: "#A0A0A0" }, element_class: 'active'});
     $('#check-for-updates').click(function(){ w.checkForUpdate(true) });
     $('#install-updates').click(function() { w.update() });
-    var _d;
+    var _d, _tracker;
     if (_d = cfg('last_release_timestamp')) $('#last-update-time-label').html(_d);
+    if (_tracker = cfg('host')) $('#tracker-name').html(_tracker);
   });
 }

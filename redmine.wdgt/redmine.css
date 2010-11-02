@@ -2,7 +2,7 @@ body { font: 14px Arial,Helvetica,"Nimbus Sans L",sans-serif; }
 
 .body { border: 2px solid #FFF; -webkit-border-radius: 10px; -moz-border-radius: 10px; padding: 10px;}
 .body.front { background-color: #507AAA; display: block; }
-.body.front h1 { color: #FFF; }
+.body.front h1 { color: #FFF; margin: 0; }
 .body.back { background-color: #0F1923; display: none; }
 .body.front.warn { background-color: red; }
 .body.front.ok { background-color: green; }
@@ -25,7 +25,7 @@ body { font: 14px Arial,Helvetica,"Nimbus Sans L",sans-serif; }
 #infoButton { position:absolute; left: 10px; top: 10px; }
 #doneButton { position:absolute; left: 50px; top: 10px; }
 
-.projects-list { font-size: 12px; margin: 0; padding: 0; }
+.projects-list { font-size: 12px; margin: 0; padding: 0; margin-top: 5px; }
 .projects-list li { list-style-type: none; margin: 0 0 0 5px; padding: 0; }
 .projects-list a { color: #313131; text-decoration: none; }
 .projects-list a:hover { color: #F27478; }
