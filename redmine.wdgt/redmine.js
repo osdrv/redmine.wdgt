@@ -228,6 +228,12 @@ var parser = {
     if (_resp === undefined) return '';
     _resp = _resp.split(/<\/select>/);
     return _resp[0];
+  },
+  
+  getWatchersList: function(_resp) {
+    var _r = _resp.replace('/\t|\n/g', ''),
+    _inputs = _r.match(/<label[^>]*><input[^>]*name="issue\[watcher_user_ids\]\[\]"[^>]*>[^<]*<\/label>/gi);
+    return _inputs.join("<br/>");
   }
 }
 
@@ -270,6 +276,10 @@ RedmineWidget.prototype = {
     $('#save-new-issue').click(function(){ self.saveNewIssue.call(self) });
     $('#cancel-new-issue').click(function() { self._clearNewIssueForm() });
     
+    $('#watchers-button').click(function(_ev) { _ev.stopPropagation(); _ev.preventDefault(); $('#watchers-list').show() });
+    $('#watchers-list').click(function(_ev) { _ev.stopPropagation() });
+    $(document).click(function() { $('#watchers-list').hide() })
+    
     return this;
   },
   
@@ -303,6 +313,7 @@ RedmineWidget.prototype = {
         var _token = parser.getAuthencityToken(_resp);
         if (_token) $('#form-authenticity-token').val(_token);
         $('#assignee_select').html(parser.getAssigneeOptions(_resp));
+        $('#watchers-list').html(parser.getWatchersList(_resp));
       }
     });
   },
@@ -372,10 +383,14 @@ RedmineWidget.prototype = {
   },
   
   saveNewIssue: function() {
-    var _data = {}, self = this;
-    $('#form').find('input, checkbox, textarea, select').each(function(_i, _el) {
-      var _el = $(_el), _v = _el.val();
-      if (_v) _data[_el.attr('name')] = _v;
+    var _data = {}, self = this, _cnt = 0;
+    $('#form').find('input, :checkbox:checked, textarea, select').each(function(_i, _el) {
+      var _el = $(_el), _v = _el.val(), _name = _el.attr('name');
+      if (_name.search(/\[\]/g) !== -1) {
+        _name = _name.replace('[]', '[' + _cnt + ']');
+        _cnt++;
+      }
+      if (_v) _data[_name] = _v;
     });
     $.ajax({
       url: $('#form').attr('action'),
