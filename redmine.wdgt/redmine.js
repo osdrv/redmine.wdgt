@@ -14,7 +14,7 @@ var
 function _st(_ev) {_ev.preventDefault()}
 
 function debug(_msg) {
-  return;
+  //return;
   var _da = $('#test');
   _da.text(_da.text() + "\n" + _msg);
 }
@@ -355,7 +355,7 @@ RedmineWidget.prototype = {
       _title = _item.attr('title').substr(0, 42),
       _index;
       
-      _title += (_item.attr('title').length > 42) ? '...' : '',
+      _title += (_item.attr('title').length > 42) ? '...' : '';
       
       if (self._isPreviouslySelected(_item)) {
         _index = self._getPrevIndex(_item);
@@ -383,14 +383,17 @@ RedmineWidget.prototype = {
   },
   
   saveNewIssue: function() {
-    var _data = {}, self = this, _cnt = 0;
+    var _data = {}, self = this;
     $('#form').find('input, :checkbox:checked, textarea, select').each(function(_i, _el) {
       var _el = $(_el), _v = _el.val(), _name = _el.attr('name');
       if (_name.search(/\[\]/g) !== -1) {
-        _name = _name.replace('[]', '[' + _cnt + ']');
-        _cnt++;
+        _name = _name.replace('[]', '');
+        if (!_el.filter(':checked').length) return;
+        if (!$.isArray(_data[_name])) _data[_name] = [];
+        _data[_name].push(_v);
+      } else {
+        if (_v) _data[_name] = _v;
       }
-      if (_v) _data[_name] = _v;
     });
     $.ajax({
       url: $('#form').attr('action'),
