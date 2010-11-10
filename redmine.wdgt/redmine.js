@@ -14,7 +14,7 @@ var
 function _st(_ev) {_ev.preventDefault()}
 
 function debug(_msg) {
-  //return;
+  return;
   var _da = $('#test');
   _da.text(_da.text() + "\n" + _msg);
 }
