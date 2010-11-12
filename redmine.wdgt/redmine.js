@@ -87,11 +87,12 @@ User.prototype = {
   },
   
   auth: function(_c) {
+    
     var self = this,
-    _host = cfg('host'),
+    _host = parser.normalizeHost(cfg('host')),
     _uri = LOGIN_URI,
     _query = 'username=' + this._username + '&password=' + this._password,
-    _url = 'http://' + _host + _uri;
+    _url = _host + _uri;
     cfg('sessid', '');
     if (!this._username || !this._password || !_host) {
       debug('auth error');
@@ -100,18 +101,22 @@ User.prototype = {
       $.ajax({
         url: _url,
         success: function(_resp, _st, _x) {
+          if (parser.isWrongAuth(_resp)) {
+            info('login or password is incorrect');
+            return;
+          }
           var _resp_sessid = parser.getSessid(_x);
           if (_resp_sessid) {
             if (_resp_sessid != cfg('sessid')) cfg('sessid', _resp_sessid);
             var _token = parser.getAuthencityToken(_resp),
-			_data = { username: self._username, password: self._password };
-			if (_token) _data['authenticity_token'] = _token;
-			$.ajax({
+            _data = { username: self._username, password: self._password };
+            if (_token) _data['authenticity_token'] = _token;
+            $.ajax({
               url: _url,
               type: 'POST',
               data: _data,
               success: function(_resp, _st, _x2) {
-				var _sessid = parser.getSessid(_x2);
+                var _sessid = parser.getSessid(_x2);
                 cfg('sessid', _sessid);
                 self.sessid = _sessid;
                 if (typeof(_c) == 'function') _c();
@@ -147,7 +152,7 @@ User.prototype = {
   
   _getMyFeedUrl: function(_c) {
     $.ajax({
-      url: 'http://' + cfg('host') + MY_PAGE_URI,
+      url: parser.normalizeHost(cfg('host')) + MY_PAGE_URI,
       success: function(_resp) {
         cfg('my_feed_url', parser.getFeedUrl(_resp));
         _c();
@@ -171,7 +176,7 @@ User.prototype = {
   
   _getProjectsFeedUrl: function(_c) {
     $.ajax({
-      url: 'http://' + cfg('host') + PROJECTS_PAGE_URI,
+      url: parser.normalizeHost(cfg('host')) + PROJECTS_PAGE_URI,
       success: function(_resp) {
         cfg('projects_feed_url', parser.getProjectsFeedUrl(_resp));
         _c();
@@ -188,11 +193,16 @@ User.prototype = {
 
 var parser = {
   
+  normalizeHost: function(_h) {
+    var _nh = (_h.search('http://') !== -1)? _h : 'http://' + _h;
+    return _nh
+  },
+  
   getProjectsFeedUrl: function(_resp) {
     var _link = /<a.+class="atom".*?>/.exec(_resp);
     if (_link[0] !== undefined) {
       var _href = /href="([^"]+)"/.exec(_link[0]);
-      if (_href[1] !== undefined) return 'http://' + cfg('host') + _href[1];
+      if (_href[1] !== undefined) return parser.normalizeHost(cfg('host')) + _href[1];
     }
     return null;
   },
@@ -234,6 +244,10 @@ var parser = {
     var _r = _resp.replace('/\t|\n/g', ''),
     _inputs = _r.match(/<label[^>]*><input[^>]*name="issue\[watcher_user_ids\]\[\]"[^>]*>[^<]*<\/label>/gi);
     return _inputs.join("<br/>");
+  },
+  
+  isWrongAuth: function(_resp) {
+    return _resp.search('<div class="flash error">') !== -1
   }
 }
 
@@ -406,8 +420,7 @@ RedmineWidget.prototype = {
         _x.setRequestHeader('X-Requested-With', 'widget');
       },
       success: function(_resp, _st, _xhr) {
-        debug(_resp);
-	      self._clearNewIssueForm();
+        self._clearNewIssueForm();
         $('#front').addClass('ok');
         self.selectTab('tasks');
         _user.loadFeed(self.updateTasks);
